@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+
+{% block main%}
+
+    <form action="/add-data" method="post">
+
+        <textarea name="data" placeholder="{{placeholder}}"></textarea>
+
+        <button type="submit"> Submit to Database </button>
+    </form>
+
+{% endblock %}

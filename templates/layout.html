@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="initial-scale=1, width=device-width">
+
+        <link href="/static/favicon.ico" rel="icon">
+        <link href="/static/styles.css" rel="stylesheet">
+
+        <title>
+        {% block title%}{% endblock %}
+        </title>
+
+    </head>
+
+    <body>
+
+        <nav>
+            <h1>HydroTrend</h1>
+
+            <ul>
+                <li class="nav-item"> <a href="\"> Home </a> </li>
+                <li class="nav-item"> <a href="\upload"> Upload Data </a> </li>
+            </ul>
+        </nav>
+
+        {% block main %}{% endblock %}
+
+        <footer>
+            Created for CS50.
+        </footer>
+
+    </body>
+</html>

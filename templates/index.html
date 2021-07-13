@@ -1,20 +1,11 @@
-<!DOCTYPE html>
+{% extends "layout.html" %}
 
-<html lang="en">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="initial-scale=1, width=device-width">
+{% block title %}
+    Home | HydroTrend
+{% endblock %}
 
-        <link href="/static/favicon.ico" rel="icon">
+{% block main %}
 
-        <title>Hydro Trend</title>
-    </head>
+    {% include "map.html" %}        
 
-    <body class="map">
-        <h1>Hydro Trend</h1>
-
-            {% block body %}
-                {% include "map.html" %}        
-            {% endblock %}
-    </body>
-</html>
+{% endblock %}
