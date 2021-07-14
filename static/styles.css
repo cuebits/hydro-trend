@@ -1,4 +1,9 @@
-h1
+html
+{
+    font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+nav h1
 {
     padding: 0px 0px 0px 36px;
     color:cornflowerblue;
@@ -27,7 +32,6 @@ nav li a
     text-decoration: none;
 }
   
-  /* Change the link color to #111 (black) on hover */
 nav li a:hover 
 {
     background-color: #111;
@@ -37,7 +41,21 @@ nav li a:hover
 
 textarea
 {
-    width: 400px;
+    width: 80%;
     height: 600px;
     align-self: center;
+    display: block;
+    margin: 12px auto auto auto;
+    padding: 6px;
+}
+
+footer
+{
+    position: absolute;
+    bottom: -32px;
+    width: 100%;
+    background-color: #EEE;
+    color: #888;
+    text-align: center;
+    padding: 6px;
 }

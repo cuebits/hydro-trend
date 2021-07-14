@@ -6,11 +6,12 @@ import folium
 import os
 import io
 import pandas
+import reverse_geocoder
 
 app = Flask(__name__)
 cwd = os.getcwd()
 
-placeholder = "Usage, tab separated columns:\n'Station'\tStation\n'Latitude'\tLatitude\n'Longitude'\tLongitude\nDate\tRainfall"
+placeholder = "Usage, tab separated columns:\n\n'Dates'\tStation\n'Latitude'\tLatitude\tLatitude\n'Longitude'\tLongitude\tLongitude\nDate\tRainfall\nDate\tRainfall\nDate\tRainfall"
 
 # Home page
 @app.route("/")
@@ -61,28 +62,53 @@ def create_connection(path):
 # Function for establishing connection to database and initialising tables if they don't exist. Called on index page.
 def db_connect():
     db = create_connection(cwd + "\\hyrdo-db.sqlite")
-    db.execute("CREATE TABLE IF NOT EXISTS stations (station_id TEXT PRIMARY KEY NOT NULL, latitude REAL NOT NULL, longitude REAL NOT NULL)")    # Expand to include date range and country
-    db.execute("CREATE TABLE IF NOT EXISTS rainfall (station_id TEXT PRIMARY KEY NOT NULL, record_date REAL NOT NULL, precipitation REAL, FOREIGN KEY (station_id) REFERENCES stations (station_id))")
     return db
 
 # Function for processing raw text input into workable data frames
 def df_process(data, db):
         
         # Read into data frame
-        df = pandas.read_csv(io.StringIO(data), sep="\t", index_col=0)
+        df = pandas.read_csv(io.StringIO(data), sep="\t")
 
         # Write to SQL Table of Stations
+        date_range = []
         # Iterate over each station in the dataframe
-        for label, content in df.iteritems():
+        for heading, column in df.iteritems():
 
-            if label == "Date":
+            # Extract date range of data
+            if heading == "Date":
+                date_range = column.iloc[2:]
                 continue
             
-            lat = content.iloc[0]
-            lon = content.iloc[1]
+            # Find country of station
+            lat = column.iloc[0]
+            lon = column.iloc[1]
+            country = reverse_geocoder.search((lat, lon))[0]['cc']
+            print(country)
 
-            db.execute("INSERT INTO stations (station_id, latitude, longitude) VALUES (?, ?, ?)", (label, lat, lon))
+            # Create tables for stations, and for countries
+            db.execute("CREATE TABLE IF NOT EXISTS stations (station_id TEXT NOT NULL, latitude REAL NOT NULL, longitude REAL NOT NULL, start_year INTEGER, end_year INTEGER, country TEXT NOT NULL)")
+            db.execute(f"CREATE TABLE IF NOT EXISTS {country} (dates REAL PRIMARY KEY UNIQUE NOT NULL)")
+
+            # Check if stations are existing, if so, update existing rows and continue loop
+            table = pandas.read_sql_query("SELECT * FROM stations", db)
+            if heading in table["station_id"].to_list():
+                for date, rain in zip(date_range, column[2:]):
+                    db.execute(f"INSERT INTO {country} (dates, {heading}) VALUES (?, ?) ON CONFLICT (dates) DO UPDATE SET {heading} = ?", (date, rain, rain))
+                db.commit()
+                continue
+
+            # Insert data into tables
+            db.execute("INSERT INTO stations (station_id, latitude, longitude, country) VALUES (?, ?, ?, ?)", (heading, lat, lon, country))
+            db.execute(f"ALTER TABLE {country} ADD {heading}")
+
+            for date, rain in zip(date_range, column[2:]):
+                db.execute(f"INSERT INTO {country} (dates, {heading}) VALUES (?, ?) ON CONFLICT (dates) DO UPDATE SET {heading} = ?", (date, rain, rain))
             db.commit()
+            
+
+
+
 
 
 if __name__ == '__main__':
