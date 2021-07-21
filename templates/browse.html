@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+
+{% block main%}
+
+    <form action="/browse" method="post">
+
+        <label for="nations">Select a country to view available data in database: </label>
+        <br>
+        <select name="nation">
+            {% for nation in nations_list %}
+                <option value={{nation}}>{{nation}}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <button type="submit"> Load Data </button>
+    </form>
+
+    <div {{hide}}>
+
+        <h2> Data for {{nation}} </h2>
+
+        <h3><a href={{download_link}}>Download Data as CSV</a></h3>
+
+        <table class="dataTable">
+            <thead>
+                {% for header in header_row %}
+                    <th>{{header}}</th>
+                {% endfor %}
+            </thead>
+            <tbody>
+                {% for row in table %}
+                    <tr>
+                        {% for entry in row %}
+                            <td>{{entry}}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+
+{% endblock %}
