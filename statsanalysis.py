@@ -19,14 +19,10 @@ def mkanalysis(df: pandas.DataFrame, alpha=0.05):
     coordinates[0].pop(0)
     coordinates[1].pop(0)
     df = df.drop([0,1])
-    print(coordinates)
-    print(df)
 
     # Extract dates column and transform it into a time series
     dates = pandas.Series(df["dates"])
-    print(dates)
     dates = pandas.to_datetime(dates)
-    print(dates)
      
     # Create new data frames for Sen's Slopes and m-k tests
     sens_df = pandas.DataFrame()

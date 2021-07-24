@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, send_from_directory
+import numpy
 from webappfunctions import *
 from statsanalysis import *
 
@@ -79,10 +80,47 @@ def download(filename):
 
 @app.route('/stats', methods=['GET','POST'])
 def stats():
+
+    # Get list of countries for form
     db = db_connect()
-    df = nation2df('US', db, indexed=False)
-    sens_df, mk_df = mkanalysis(df)
-    return redirect("/")
+    nations = db.execute("SELECT name FROM sqlite_master WHERE type='table' AND NAME NOT LIKE 'sqlite_%' AND NAME NOT LIKE 'stations'").fetchall()
+    nations_list = []
+    for nation in nations:
+        # Clean nations list from SQL input
+        nations_list.append(nation[0])
+    
+    #  If user has selected a nation
+    if request.method == "POST":
+
+        # Get nation code from user input, and then get nation data from database
+        nation = request.form.get("nation")
+        df = nation2df('US', db, indexed=False)
+
+        # Run MK analysis on data
+        alpha = float(request.form.get("alpha"))
+        sens_df, mk_df = mkanalysis(df, alpha=alpha)
+
+        # Set download directory and output dataframe to CSV file for user download
+        sens_dl = "/temp/" + nation + "_sens.csv"
+        mk_dl = "/temp/" + nation + "_mk.csv"
+        sens_df.to_csv(cwd + sens_dl)
+        mk_df.to_csv(cwd + mk_dl)
+
+        # Truncate Sen's Slopes to 3 decimal places
+        sens_df = numpy.trunc(10000 * sens_df) / 10000
+
+        # Format dataframes for display
+        sens_df = sens_df.reset_index()
+        mk_df = mk_df.reset_index()
+
+        sens_df = sens_df.rename(columns={'index':'Stations'})
+        mk_df = mk_df.rename(columns={'index':'Stations'})
+
+        return render_template("stats.html", hide="", alpha=alpha, nations_list=nations_list, nation=nation, header_row=sens_df.columns.tolist(), sens_table=sens_df.values.tolist(), mk_table=mk_df.values.tolist(), sens_dl=sens_dl, mk_dl=mk_dl)
+
+    else: 
+
+        return render_template("stats.html", hide="hidden", nations_list=nations_list)
 
 
 if __name__ == '__main__':

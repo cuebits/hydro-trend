@@ -3,6 +3,10 @@ html
     font-family:'Franklin Gothic Book', 'Arial Narrow', Arial, sans-serif;
 }
 
+body{
+    min-height: 80%;
+}
+
 nav h1
 {
     padding: 0px 0px 0px 12px;

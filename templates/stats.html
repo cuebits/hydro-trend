@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+
+{% block main%}
+
+    <form action="/stats" method="post">
+
+        <label for="nation">Select a country to view available data in database: </label>
+        <br>
+        <select name="nation">
+            {% for nation in nations_list %}
+                <option value={{nation}}>{{nation}}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <label for="alpha">Enter Mann-Kendall Test Significance Alpha:</label>
+        <br>
+        <input type="number" name="alpha" value=0.05 step="any" min=0.001 max=0.2>
+        <br>
+        <button type="submit"> Load Data </button>
+    </form>
+
+    <div {{hide}}>
+
+        <h2> Rainfall Trend Sen's Slopes for {{nation}} Rainfall Stations (mm/year) </h2>
+
+        <h3><a href={{sens_dl}}>Download Sen's Slope Data as CSV</a></h3>
+
+        <table class="dataTable">
+            <thead>
+                {% for header in header_row %}
+                    <th>{{header}}</th>
+                {% endfor %}
+            </thead>
+            <tbody>
+                {% for row in sens_table %}
+                    <tr>
+                        {% for entry in row %}
+                            <td>{{entry}}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <br>
+
+        <h2> Mann-Kendall Trend Significance for {{nation}} Rainfall Stations (alpha = {{alpha}}) </h2>
+
+        <h3><a href={{mk_dl}}>Download Mann-Kendall Test Results as CSV</a></h3>
+
+        <table class="dataTable">
+            <thead>
+                {% for header in header_row %}
+                    <th>{{header}}</th>
+                {% endfor %}
+            </thead>
+            <tbody>
+                {% for row in mk_table %}
+                    <tr>
+                        {% for entry in row %}
+                            <td>{{entry}}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+
+{% endblock %}

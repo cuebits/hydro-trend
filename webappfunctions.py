@@ -7,6 +7,8 @@ import io
 import pandas
 import reverse_geocoder
 import bs4 
+import zipfile
+import pathlib
 
 cwd = os.getcwd()
 placeholder = "Usage, tab separated columns:\n\n'Dates'\tStation\n'Latitude'\tLatitude\tLatitude\n'Longitude'\tLongitude\tLongitude\nDate\tRainfall\nDate\tRainfall\nDate\tRainfall"
