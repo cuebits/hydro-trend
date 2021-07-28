@@ -2,14 +2,12 @@ import pymannkendall
 import pandas
 import geopandas
 import smoomapy
-import os
 import matplotlib.pyplot as plt
 import matplotlib
+matplotlib.use('Agg') # Avoids runtime errors
 
 from shapely.geometry import Point
 from numpy import reshape, linspace
-from datetime import datetime
-
 
 # Function to generate monthly sens slope and mk trend test dataframes
 def mkanalysis(df: pandas.DataFrame, alpha=0.05):
@@ -75,3 +73,93 @@ def mkanalysis(df: pandas.DataFrame, alpha=0.05):
     mk_df["Longitude"] = coordinates[1]    
 
     return sens_df, mk_df
+
+
+def trendmapgen(gdf, nation3code, analysis_type, dir, crs=4326, axis_buffer=5):
+    
+    # Temp set extents of map
+    minx, miny, maxx, maxy = min(gdf["Longitude"]) - axis_buffer, min(gdf["Latitude"]) - axis_buffer, max(gdf["Longitude"]) + axis_buffer, max(gdf["Latitude"]) + axis_buffer
+
+    # If input dataframe is not a geodataframe, convert it to one
+    if isinstance(gdf, pandas.DataFrame):
+        gdf = df_to_gdf(gdf, crs)
+
+    minslope = gdf.drop(["Latitude", "Longitude", "geometry"], axis=1).min().min()
+    maxslope = gdf.drop(["Latitude", "Longitude", "geometry"], axis=1).max().max()
+
+    # Read world and lakes shape file, then extract mask from nation name
+    world = geopandas.read_file("data\\GIS Data\\ne_10m_admin_0_countries.shp")
+    water = geopandas.read_file("data\\GIS Data\\World_Lakes.shp")
+    
+    mask = world[(world.ADM0_A3==nation3code)]
+
+    # Run plots and subplots
+    ax = plt.subplot()                      
+    ax.set_xlim(minx, maxx)
+    ax.set_ylim(miny, maxy)
+    ax.set_facecolor("#d1e0e6")
+    gdf.plot(ax=ax, color="k", markersize=3, zorder=100)
+    water.plot(ax=ax, color="#d1e0e6", zorder=3)
+    world.plot(ax=ax, color="#c6cccf", zorder=1)
+
+    # Generate stations locations map
+    plt.title(label="Rainfall Station Locations")
+    plt.savefig(dir + "stat_loc_" + nation3code + ".png", dpi=450)
+
+    # Define precision of IDW contours
+    num_breaks = 100
+    breaks_min = round(minslope, ndigits=3)
+    breaks_max = round(maxslope, ndigits=3)
+    plot_breaks = linspace(breaks_min, breaks_max, num_breaks)  
+    
+    if analysis_type == "annual":
+        # TODO
+
+        return 
+
+    # Iterate through months and save each image
+    i = 1 # For file naming, keeps months in chronological order, not alphabetical 
+    for month, slopes in gdf.iteritems():
+        
+        # Skip non-month columns
+        if month == "Latitude" or month == "Longitude" or month == "geometry":
+            continue
+        
+        # Create new geodataframe for each month
+        month_gdf = geopandas.GeoDataFrame(slopes, geometry=geopandas.points_from_xy(gdf.Longitude, gdf.Latitude))
+        
+        # Perform IDW functions
+        idw = smoomapy.SmoothIdw(month_gdf, month, 1, nb_pts=20000, mask=mask)
+        res = idw.render(nb_class=num_breaks, user_defined_breaks=plot_breaks, disc_func="equal_interval", output="GeoDataFrame")
+
+        # Reset figure
+        plt.figure()
+        fig, ax = plt.subplots()
+        ax.set_xlim(minx, maxx)
+        ax.set_ylim(miny, maxy)
+        ax.set_facecolor("#d1e0e6")
+
+        # Plot next month
+        gdf.plot(ax=ax, color="k", markersize=3, zorder=100, alpha=0.2)
+        water.plot(ax=ax, color="#d1e0e6", zorder=3)
+        world.plot(ax=ax, color="#c6cccf", zorder=1)
+        res.plot(ax=ax, cmap="RdBu", column="center", linewidth=0.1, zorder=99, legend=False)
+
+        # Create normalised colour bar
+        norm = matplotlib.colors.TwoSlopeNorm(vmin=breaks_min, vcenter=0, vmax=breaks_max)
+        cbar = plt.cm.ScalarMappable(norm=norm, cmap="RdBu")
+        fig.colorbar(cbar, ax=ax)
+
+        # Save output image in directory
+        plt.title(label=month + " Sens's Slopes")
+        plt.savefig(dir + "{:0>2d}".format(i) + "_" + month + "_sens_" + nation3code + ".png", dpi=450)
+        plt.close()
+
+        i += 1  
+
+    return
+
+
+def df_to_gdf(inputdf, crs=4326):
+    geometry = [Point(xy) for xy in zip(inputdf["Longitude"], inputdf["Latitude"])]
+    return geopandas.GeoDataFrame(inputdf, geometry=geometry, crs=crs)

@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block main%}
+
+    <h2>Generate Trend Maps</h2>
+    <p>This page generates maps with IDW interpolation for a selected country with the data available in the database. The trends are calculated
+    using a Thiel-Sen slope estimator with units of mm/year.</p>
+
+    <form action="/maps" method="post">
+
+        <label for="nation">Select a country to generate rainfall trend maps in database: </label>
+        <br>
+        <select name="nation">
+            {% for nation in nations_list %}
+                <option value={{nation[0]}}>{{nation[1]}}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <label for="start_year">Input start year:</label>
+        <input type="number" name="start_year" min="1800" max="{{current_year-1}}" value="1900" step=1>
+        <br>
+        <label for="end_year">Input end year:</label>
+        <input type="number" name="end_year" min="1801" max="{{current_year}}" value="2020" step=1>
+        <br>
+        <label for="map_type">Select analysis type</label>
+        <input type="radio" id="annual" name="map_type" value="annual">
+        <label for="annual">Long-term (annual or continuous)</label>
+        <input type="radio" id="monthly" name="map_type" value="monthly" checked>
+        <label for="monthly">Monthly (month to month long-term trends)</label>
+        <br>
+        <label for="crs">Select coordinate reference system:</label>
+        <select name="crs">
+            <option value=4326>WGS 1984, EPSG:4326</option>
+        </select>
+        <br>
+        <button type="submit"> Generate Maps </button>
+
+    </form>
+
+    <div {{hide}}>
+
+        <h2> {{analysis_type}} Maps for {{nation}} (mm/year Sen's slope trends) </h2>
+
+        <h3><a href={{imagedir + "/zip"}}>Download ZIP of all Maps</a></h3>
+        
+        {% for image in image_list %}
+        <br>
+        <img src={{imagedir + image}}>
+        {% endfor %}
+
+    </div>
+
+{% endblock %}

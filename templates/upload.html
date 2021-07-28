@@ -3,8 +3,10 @@
 {% block main%}
 
     <form action="/upload" method="post">
-
-        <textarea name="data" placeholder="{{placeholder}}"></textarea>
+        <h2>Upload Rainfall Data to the Database</h2>
+        <p>To contribute data to the database, copy from your CSV file, or other tab separated text, and paste into the below box and click submit. Make sure the data
+        is formatted correctly, with the "Dates", "Latitude", "Longitude", and station names columns. Use monthly rainfall data and ISO date formats.</p>
+        <textarea name="data" placeholder="{{placeholder}}""></textarea>
         <br>
         <button type="submit"> Submit to Database </button>
     </form>

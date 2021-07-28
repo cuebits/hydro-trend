@@ -8,9 +8,15 @@
         <br>
         <select name="nation">
             {% for nation in nations_list %}
-                <option value={{nation}}>{{nation}}</option>
+                <option value={{nation[0]}}>{{nation[1]}}</option>
             {% endfor %}
         </select>
+        <br>
+        <label for="start_year">Input start year:</label>
+        <input type="number" name="start_year" min="1800" max="{{current_year-1}}" value="1900" step=1>
+        <br>
+        <label for="end_year">Input end year:</label>
+        <input type="number" name="end_year" min="1801" max="{{current_year}}" value="2020" step=1>
         <br>
         <label for="alpha">Enter Mann-Kendall Test Significance Alpha:</label>
         <br>
