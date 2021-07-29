@@ -1,14 +1,20 @@
 html
 {
     font-family:'Franklin Gothic Book', 'Arial Narrow', Arial, sans-serif;
+
 }
 
-body{
+main{
     min-height: 80%;
+    margin: 0px 0px 0px 10%;
 }
 
 img{
-    max-width: 400px;
+    max-width: 50%;
+}
+
+h1, h2, h3, h4, h5, h6, p{
+    margin: 5px 5px 15px 25px;
 }
 
 nav h1
@@ -52,9 +58,7 @@ textarea
 {
     width: 80%;
     height: 600px;
-    align-self: center;
     display: block;
-    margin: 12px auto auto auto;
     padding: 6px;
 }
 
@@ -71,8 +75,9 @@ footer
 
 /* Data table */
 table.dataTable {
-    width: 100%;
+    min-width: 50%;
     height: 100%;
+    margin: 12px 12px 24px 48px;
 }
 table.dataTable tbody td {
 font-size: 12px;
@@ -90,8 +95,27 @@ font-weight: bold;
 }
 
 /* Forms */
-form {
-    display: block;
-    width: 50%;
-    padding: 12px;
+form{
+    margin:24px 24px 48px 96px;
+    text-align: left;
+}
+
+input, select {
+    width: 20%;
+    height:24px;
+    padding:2px;
+    margin: 6px;
+    display: flexbox;
+}
+
+input.radio{
+    width:2%;
+}
+
+button {
+    height: 32px;;
+    padding:4px;
+    margin: 6px;
+    display: flexbox;
+    size: 14pt;
 }

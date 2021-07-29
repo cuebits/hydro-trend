@@ -5,13 +5,14 @@ import sqlite3
 import folium
 import os
 import io
+import numpy
 import pandas
 import reverse_geocoder
 import bs4 
 import shutil
 
 cwd = os.getcwd()
-placeholder = "Usage tab separated columns:\n\n'Dates'\tStation\n'Latitude'\tLatitude\tLatitude\n'Longitude'\tLongitude\tLongitude\nDate\tRainfall\nDate\tRainfall\nDate\tRainfall"
+placeholder = "Usage tab separated columns:\n\n'Station'\tStation\n'Latitude'\tLatitude\tLatitude\n'Longitude'\tLongitude\tLongitude\nDate\tRainfall\nDate\tRainfall\nDate\tRainfall"
 
 # Function for establishing connection to database
 def db_connect():
@@ -35,41 +36,64 @@ def df_process(data, db):
         # Write to SQL Table of Stations
         date_range = []
         # Iterate over each station in the dataframe
-        for heading, column in df.iteritems():
+        for station, column in df.iteritems():
 
             # Extract date range of data
-            if heading == "Date":
-                date_range = column.iloc[2:]
+            if station == "Station":
+                date_range = column.iloc[2:].to_list()
                 continue
             
-            # Find country of station
+            # Find country of station, get two letter country code from reverse geocoder
             lat = column.iloc[0]
             lon = column.iloc[1]
             country = reverse_geocoder.search((lat, lon))[0]['cc']
+
+            # Rename station name with country code at start, allows for stations with same names from different countries, and then replace spaces with underscores
+            station = (country + "_" + station).replace(" ", "_")
 
             # Create tables for stations, and for countries
             db.execute("CREATE TABLE IF NOT EXISTS stations (station_id TEXT NOT NULL, latitude REAL NOT NULL, longitude REAL NOT NULL, start_year INTEGER, end_year INTEGER, country TEXT NOT NULL)")
             db.execute(f"CREATE TABLE IF NOT EXISTS {country} (dates REAL PRIMARY KEY UNIQUE NOT NULL)")
 
             # Check if stations are existing, if so, update existing rows and continue loop
-            table = pandas.read_sql_query("SELECT * FROM stations", db)
-            if heading in table["station_id"].to_list():
+            stations_table = pandas.read_sql_query("SELECT * FROM stations", db)
+            if station in stations_table["station_id"].to_list():
                 for date, rain in zip(date_range, column[2:]):
-                    db.execute(f"INSERT INTO {country} (dates, {heading}) VALUES (?, ?) ON CONFLICT (dates) DO UPDATE SET {heading} = ?", (date, rain, rain))
+                    db.execute(f"INSERT INTO {country} (dates, {station}) VALUES (?, ?) ON CONFLICT (dates) DO UPDATE SET {station} = ?", (date, rain, rain))
                 db.commit()
                 continue
+            
+            # Remove latitude and longitude data from column
+            rain_data = column[2:].to_list()
+
+            # Extract start and end year for this column
+            index = 0
+            start_year: int = 3000
+            for entry in rain_data:
+
+                # Skip first null entries
+                if pandas.isnull(entry):
+                    index += 1
+                    continue
+                
+                entry_year = int(date_range[index][:4])
+                # Until first year data is encountered
+                if entry_year < start_year:
+                    start_year = entry_year
+
+                # Keep storing years if not null entry, final non-null entry is end year
+                if pandas.isnull(entry) is False:
+                    end_year = entry_year
+
+                index += 1
 
             # Insert data into tables
-            db.execute("INSERT INTO stations (station_id, latitude, longitude, country) VALUES (?, ?, ?, ?)", (heading, lat, lon, country))
+            db.execute("INSERT INTO stations (station_id, latitude, longitude, start_year, end_year, country) VALUES (?, ?, ?, ?, ?, ?)", (station, lat, lon, start_year, end_year, country))
 
-            # Check if numeric headings, then add underscore to start
-            if heading[0].isdigit():
-                heading = "_" + heading
+            db.execute(f"ALTER TABLE {country} ADD {station}")
 
-            db.execute(f"ALTER TABLE {country} ADD {heading}")
-
-            for date, rain in zip(date_range, column[2:]):
-                db.execute(f"INSERT INTO {country} (dates, {heading}) VALUES (?, ?) ON CONFLICT (dates) DO UPDATE SET {heading} = ?", (date, rain, rain))
+            for date, rain in zip(date_range, rain_data):
+                db.execute(f"INSERT INTO {country} (dates, {station}) VALUES (?, ?) ON CONFLICT (dates) DO UPDATE SET {station} = ?", (date, rain, rain))
             db.commit()
             
 
@@ -77,6 +101,37 @@ def render_home_map():
     
     # Initialise and save map HTML
     folium_map = folium.Map(location=(0, 0), zoom_start=3, width="90%", height="80%", left="5%", top="5%")
+
+    # Query database for all stations
+    db = db_connect()
+    stations_table = pandas.read_sql_query("SELECT * FROM stations", db)
+
+    # Add markers to map
+    for i in range(0,len(stations_table)):
+        html=f"""
+            <head><link href="/static/styles.css" rel="stylesheet"></head>
+            <link href="/static/styles.css" rel="stylesheet">
+            <h1 style="font-size:20px;font-family:Arial"> {stations_table.iloc[i]['station_id']}</h1>
+            <p style="font-size:12px;font-family:Arial">
+                Country: {stations_table.iloc[i]['country']}
+                <br>
+                Date range: {stations_table.iloc[i]['start_year']} - {stations_table.iloc[i]['end_year']}
+                <br>
+                Coordinates: {stations_table.iloc[i]['latitude']}, {stations_table.iloc[i]['longitude']}
+            </p>
+            """
+        iframe = folium.IFrame(html=html, width=300, height=100)
+        popup = folium.Popup(iframe, max_width=2650)
+        folium.Marker(
+            location=[stations_table.iloc[i]['latitude'], stations_table.iloc[i]['longitude']],
+            popup=popup,
+            icon=folium.DivIcon(html=f"""
+                <div><svg>
+                    <circle cx="10" cy="10" r="6" fill="cornflowerblue" opacity=".8"/>
+                </svg></div>""")
+        ).add_to(folium_map)
+
+    # Save map as HTML
     folium_map.save("templates/map.html")
 
     # Remove Folium CSS
@@ -85,7 +140,7 @@ def render_home_map():
     txt = soup.find("link", {"href": "https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"})
     txt.replace_with("")
     txt = soup.find("link", {"href": "https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css"})
-    txt.replace_with("") 
+    txt.replace_with("")
     with open(cwd + "\\templates\map.html","wb") as output:
         output.write(soup.prettify("utf-8"))
     

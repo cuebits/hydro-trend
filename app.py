@@ -16,9 +16,6 @@ app = Flask(__name__)
 @app.route("/")
 def index():    
 
-    # Establish hydro database connection
-    db = db_connect()
-
     # Create folium map
     render_home_map()
 
@@ -76,11 +73,15 @@ def browse():
         df.to_csv(cwd + download_dir + nation2code + "_data.csv")
         download_dir = download_dir + nation2code + "_data.csv"
 
-        return render_template("browse.html", hide="", nations_list=nations_list, current_year=datetime.now().year, nation2code=nation2code, nation=nation, header_row=stations, table=data, download_link=download_dir)
+        return render_template("browse.html", hide="", start_year=start_year,end_year=end_year, nations_list=nations_list, current_year=datetime.now().year, nation2code=nation2code, nation=nation, header_row=stations, table=data, download_link=download_dir)
 
     else: 
 
         return render_template("browse.html", hide="hidden", nations_list=nations_list, current_year=datetime.now().year)
+
+@app.route('/template')
+def template():
+    return send_file(cwd + "/data/template.csv", attachment_filename="template.csv", as_attachment=True)
 
 
 @app.route('/temp/<path:filename>', methods=['GET','POST'])
@@ -127,13 +128,13 @@ def stats():
         nation = nationcoderef.at[nation2code, "Country"]
         start_year = int(request.form.get("start_year"))
         end_year = int(request.form.get("end_year"))
-
+        analysis_type = request.form.get("analysis_type")
 
         df = nation2df(nation2code, db, indexed=False, start_year=start_year, end_year=end_year)
 
         # Run MK analysis on data
         alpha = float(request.form.get("alpha"))
-        sens_df, mk_df = mkanalysis(df, alpha=alpha)
+        sens_df, mk_df = mkanalysis(df, analysis_type=analysis_type, alpha=alpha)
 
         # Set download directory and output dataframe to CSV file for user download
         download_dir = "/temp/" + datetime.now().strftime("%Y%m%d%H%M%S") + "/"
@@ -150,10 +151,10 @@ def stats():
         sens_df = sens_df.reset_index()
         mk_df = mk_df.reset_index()
 
-        sens_df = sens_df.rename(columns={'index':'Stations'})
-        mk_df = mk_df.rename(columns={'index':'Stations'})
+        sens_df = sens_df.rename(columns={'index':'Stations', 'Long-Term': str(start_year) + "-" + str(end_year) + ' Trend'})
+        mk_df = mk_df.rename(columns={'index':'Stations', 'Long-Term': str(start_year) + "-" + str(end_year) + ' Trend'})
 
-        return render_template("stats.html", hide="", alpha=alpha, current_year=datetime.now().year, nations_list=nations_list, nation=nation, header_row=sens_df.columns.tolist(), sens_table=sens_df.values.tolist(), mk_table=mk_df.values.tolist(), sens_dl=sens_dl, mk_dl=mk_dl)
+        return render_template("stats.html", hide="", start_year=start_year, end_year=end_year, alpha=alpha, current_year=datetime.now().year, nations_list=nations_list, nation=nation, header_row=sens_df.columns.tolist(), sens_table=sens_df.values.tolist(), mk_table=mk_df.values.tolist(), sens_dl=sens_dl, mk_dl=mk_dl)
 
     else: 
 
@@ -178,7 +179,7 @@ def map_gen():
         nation2code = request.form.get("nation")
         start_year = int(request.form.get("start_year"))
         end_year = int(request.form.get("end_year"))
-        map_type = request.form.get("map_type")
+        analysis_type = request.form.get("analysis_type")
         crs = int(request.form.get("crs"))
 
         nation3code = nationcoderef.at[nation2code, "Alpha-3 code"]
@@ -187,19 +188,19 @@ def map_gen():
         df = nation2df(nation2code, db, indexed=False, start_year=start_year, end_year=end_year)
 
         # Run MK analysis on data
-        sens_df, mk_df = mkanalysis(df)
+        sens_df, mk_df = mkanalysis(df, analysis_type=analysis_type)
 
         # Make temporary directory
         imagedir = "\\temp\\" + datetime.now().strftime("%Y%m%d%H%M%S") + "\\"
         os.makedirs(cwd + imagedir)
 
         # Generate images and then write to directory
-        trendmapgen(sens_df, nation3code, map_type, cwd + imagedir, crs, axis_buffer=5)
+        trendmapgen(sens_df, nation3code, dir= cwd + imagedir, crs=crs, axis_buffer=5)
 
         # Send back list of images and download link for zip file
         filelist= [file for file in os.listdir(cwd + imagedir) if file.endswith('.png')]
 
-        return render_template("maps.html", hide="", current_year=datetime.now().year, nations_list=nations_list, nation=nation, analysis_type=map_type, imagedir=imagedir, image_list=filelist)
+        return render_template("maps.html", hide="", start_year=start_year, end_year=end_year, current_year=datetime.now().year, nations_list=nations_list, nation=nation, analysis_type=analysis_type, imagedir=imagedir, image_list=filelist)
 
     else: 
 

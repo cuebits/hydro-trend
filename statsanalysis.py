@@ -7,10 +7,10 @@ import matplotlib
 matplotlib.use('Agg') # Avoids runtime errors
 
 from shapely.geometry import Point
-from numpy import reshape, linspace
+from numpy import mafromtxt, reshape, linspace
 
 # Function to generate monthly sens slope and mk trend test dataframes
-def mkanalysis(df: pandas.DataFrame, alpha=0.05):
+def mkanalysis(df: pandas.DataFrame, alpha=0.05, analysis_type = "Monthly"):
 
     # Extract coordinates and remove from dataframe to be analysed
     coordinates = df.iloc[0:2].values.tolist()
@@ -36,13 +36,23 @@ def mkanalysis(df: pandas.DataFrame, alpha=0.05):
         # Convert the column to a time series
         content = pandas.Series(content.values, index = dates)
 
-        # Reshape the time series into a matrix with months as columns
-        monthly_array = content.values                              # Create an array with the values from the current data frame column
-        monthly_array = reshape(monthly_array, (-1, 12)).T    # Reshape to 12 x N, then transpose so each array index corresponds with a month
-
         # Create temporary columns for storing into the new data frame
         sens_temp = []
         mk_temp = []
+
+        if analysis_type == "Annual":
+            annual_series = content.values
+            mk_result = pymannkendall.original_test(annual_series, alpha=alpha)
+            sens_temp.append(mk_result.slope)
+            mk_temp.append(mk_result.trend)
+            sens_df[label] = sens_temp
+            mk_df[label] = mk_temp
+            continue
+
+
+        # Reshape the time series into a matrix with months as columns
+        monthly_array = content.values                              # Create an array with the values from the current data frame column
+        monthly_array = reshape(monthly_array, (-1, 12)).T    # Reshape to 12 x N, then transpose so each array index corresponds with a month
 
         # For each column in the array, run the tests
         for month in monthly_array:
@@ -56,15 +66,20 @@ def mkanalysis(df: pandas.DataFrame, alpha=0.05):
         sens_df[label] = sens_temp
         mk_df[label] = mk_temp
 
-    # Add months columns
-    sens_df["Month"] = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-    mk_df["Month"] = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-    sens_df = sens_df.set_index("Month")
-    mk_df = mk_df.set_index("Month")
+    if analysis_type == "Monthly":
+        # Add months columns
+        sens_df["Month"] = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+        mk_df["Month"] = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+        sens_df = sens_df.set_index("Month")
+        mk_df = mk_df.set_index("Month")
 
     # Transpose data frames
     sens_df = sens_df.T
     mk_df = mk_df.T
+
+    if analysis_type == "Annual":
+        sens_df = sens_df.rename(columns={'index':'Stations', 0: 'Long-Term'})
+        mk_df = mk_df.rename(columns={'index':'Stations', 0: 'Long-Term'})
 
     # Reinsert lat/lon rows
     sens_df["Latitude"] = coordinates[0]
@@ -75,9 +90,9 @@ def mkanalysis(df: pandas.DataFrame, alpha=0.05):
     return sens_df, mk_df
 
 
-def trendmapgen(gdf, nation3code, analysis_type, dir, crs=4326, axis_buffer=5):
+def trendmapgen(gdf, nation3code, dir, crs=4326, axis_buffer=5):
     
-    # Temp set extents of map
+    # Set extents of map
     minx, miny, maxx, maxy = min(gdf["Longitude"]) - axis_buffer, min(gdf["Latitude"]) - axis_buffer, max(gdf["Longitude"]) + axis_buffer, max(gdf["Latitude"]) + axis_buffer
 
     # If input dataframe is not a geodataframe, convert it to one
@@ -108,14 +123,9 @@ def trendmapgen(gdf, nation3code, analysis_type, dir, crs=4326, axis_buffer=5):
 
     # Define precision of IDW contours
     num_breaks = 100
-    breaks_min = round(minslope, ndigits=3)
-    breaks_max = round(maxslope, ndigits=3)
+    breaks_min = min(round(minslope, ndigits=3), -0.001)
+    breaks_max = max(round(maxslope, ndigits=3), 0.001)
     plot_breaks = linspace(breaks_min, breaks_max, num_breaks)  
-    
-    if analysis_type == "annual":
-        # TODO
-
-        return 
 
     # Iterate through months and save each image
     i = 1 # For file naming, keeps months in chronological order, not alphabetical 
@@ -151,7 +161,7 @@ def trendmapgen(gdf, nation3code, analysis_type, dir, crs=4326, axis_buffer=5):
         fig.colorbar(cbar, ax=ax)
 
         # Save output image in directory
-        plt.title(label=month + " Sens's Slopes")
+        plt.title(label= month + " Sen's Slope (mm/year)")
         plt.savefig(dir + "{:0>2d}".format(i) + "_" + month + "_sens_" + nation3code + ".png", dpi=450)
         plt.close()
 
