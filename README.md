@@ -4,7 +4,7 @@
 Interactive web application for viewing, adding, and analysing rainfall data. Includes an interactive map for veiwing the available data in the database, functions to download data as a CSV, statistical analysis (Mann-Kendall test for non-parametric trends) and a static map image generator that allows you to visualise how rainfall has changed over a given period for a country. 
 
 ## Introduction
-This app was built to assist follow-up research of the research paper ["Evidence of climate change in south east Australian water data"](https://drive.google.com/file/d/1egNLWQuNnzxzXjiOheR68cT9zheViHn4/view). It allows users to submit their own rainfall data to a shared database, and for others to download the raw data, analysed data, and static maps visualising the spatial trends over a selected analysis period. It is intended for the UNSW Water Research centre and as a final project for the Harvard online computer science course CS50X. 
+This app was built to assist follow-up research of the research paper ["Evidence of climate change in south east Australian water data"](https://drive.google.com/file/d/1egNLWQuNnzxzXjiOheR68cT9zheViHn4/view). It allows users to submit their own rainfall data to a shared database, and for others to download the raw data, analysed data, and static maps visualising the spatial trends over a selected analysis period. It is intended for the UNSW Water Research Centre and as a final project for the Harvard University online computer science course CS50X. 
 
 ## Dependencies
 This web app makes use of a number of external libraries, common for data analysis, but a few other more obscure libraries found on GitHub. 
