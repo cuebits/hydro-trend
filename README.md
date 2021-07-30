@@ -1,5 +1,5 @@
 # HydroTrend
-#### Video Demo:  <URL HERE>
+#### Video Demo:  <https://youtu.be/JKfmagtzQOs>
 #### Summary: 
 Interactive web application for viewing, adding, and analysing rainfall data. Includes an interactive map for veiwing the available data in the database, functions to download data as a CSV, statistical analysis (Mann-Kendall test for non-parametric trends) and a static map image generator that allows you to visualise how rainfall has changed over a given period for a country. 
 
