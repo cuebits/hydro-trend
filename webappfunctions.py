@@ -4,6 +4,7 @@ from datetime import datetime
 import sqlite3
 import folium
 import os
+import sys
 import io
 import numpy
 import pandas
@@ -11,7 +12,10 @@ import reverse_geocoder
 import bs4 
 import shutil
 
+# Get current working directory and add modules folder
 cwd = os.getcwd()
+sys.path.append(cwd + "/python-modules/")
+
 placeholder = "Usage tab separated columns:\n\n'Station'\tStation\n'Latitude'\tLatitude\tLatitude\n'Longitude'\tLongitude\tLongitude\nDate\tRainfall\nDate\tRainfall\nDate\tRainfall"
 
 # Function for establishing connection to database

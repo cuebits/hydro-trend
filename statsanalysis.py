@@ -27,10 +27,19 @@ def mkanalysis(df: pandas.DataFrame, alpha=0.05, analysis_type = "Monthly"):
     mk_df = pandas.DataFrame()
 
     # Iterate for each station in the data frame
+    index = 0
     for label, content in df.iteritems():
         
         # Skip the dates column
         if label == "dates":
+            continue
+        
+        # Error catcher, if all elements in a month are blank, they turn None, skip this column as it will cause pymannkendall to throw an exception
+        if any(elem is None for elem in content):
+            
+            # Remove station coordinates from coordinates row
+            coordinates[0].pop(index)
+            coordinates[1].pop(index)
             continue
 
         # Convert the column to a time series
@@ -65,6 +74,8 @@ def mkanalysis(df: pandas.DataFrame, alpha=0.05, analysis_type = "Monthly"):
         # Add each station to the data frames
         sens_df[label] = sens_temp
         mk_df[label] = mk_temp
+
+        index += 1
 
     if analysis_type == "Monthly":
         # Add months columns
