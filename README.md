@@ -15,7 +15,7 @@ This web app makes use of a number of external libraries, common for data analys
 - datetime
 - zipfile: for batch donwloading image files for static map generation
 ### Common External Libraries
-- flask: used for building
+- flask: used for building the web application
 - numpy and pandas: for data array mainpulation
 - geopandas and shapely: for interpreting GIS data
 - matplotlib: for creating maps
