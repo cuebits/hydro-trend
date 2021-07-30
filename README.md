@@ -35,12 +35,12 @@ Has the folium interactive map with the rainfall stations in the database on the
 ### Upload Data 
 Here you can download the CSV template for adding your data. Copy and paste the data from Excel, and paste in the data into the text area. Make sure the data is tab separated. Then click "Submit to Database". 
 For future development: 
-- [] CSV file upload. 
+- [ ] CSV file upload. 
 
 ### Browse Data
 Browse the available rainfall station database for a particular country and date range. The data will be made available for CSV download.
 For future development: 
-- [] Sub-country level data breakdown (states, provinces etc)
+- [ ] Sub-country level data breakdown (states, provinces etc)
 
 ### Analyse Data
 The page analyses selected data by outputting a table of Thiel-Sen slope estimators (mm/year) and a table of trend results i.e. whether or not the slopes are statistically significant for the given alpha level. 
@@ -53,8 +53,8 @@ This is a way of seeing how seasonality has changed over the long-term and is of
 ### Generate Maps
 This generates static PNG images of maps with rainfall trend mapped with the inverse distance weighted method. In addition, you may select a coordinate reference system to project the data, depending on the user region of interest. It also generates a link to create a ZIP download of all the images. 
 For future development: 
-- [] Correct CRS projection for smoomapy
-- [] Add additional CRS systems and integrate correctly into system
+- [ ] Correct CRS projection for smoomapy
+- [ ] Add additional CRS systems and integrate correctly into system
 
 ## Breakdown of Files and Functions
 The below is a quick guide for how each function operates. 
@@ -71,12 +71,12 @@ Takes raw, tab separated text input and converts it into a dataframe. It creates
 
 Note that the queries use the "ON CONFLICT" keywords to preserve the order of and prevent duplicating of the dates rows (which are declared unique). Note however, that in the unlikley situation that there are stations in the same country with the same name, the new data will overwrite the previous records. 
 For future development: 
-- [] Sanitise SQL inputs, as SQLite cannot create tables or columns with variable names in a secure way
+- [ ] Sanitise SQL inputs, as SQLite cannot create tables or columns with variable names in a secure way
 
 #### render_home_map
 Generate a folium map. Then queries the stations table in the database and creates a marker for the map for each entry. Beatiful Soup removes some CSS. 
 For future development: 
-- [] Generate a better HTML template from Folium
+- [ ] Generate a better HTML template from Folium
 
 #### nation2df
 Gathers the data from a particular nation and returns all the available data in a pandas dataframe. 
@@ -100,9 +100,9 @@ Generates the trend maps of the selected country and date range. Takes a geodata
 5. Plots the results on a map with the MATLAB plotting library module.
 6. Saves the output images in the temp directory 
 For future development:
-- [] Dynamically set the axis buffer, or the map extents
-- [] Select different colour gradient maps for the trend axes
-- [] Make the outputs prettier, with:
+- [ ] Dynamically set the axis buffer, or the map extents
+- [ ] Select different colour gradient maps for the trend axes
+- [ ] Make the outputs prettier, with:
      - North points
      - Gridlines
      - Different font
