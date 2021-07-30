@@ -99,6 +99,7 @@ Generates the trend maps of the selected country and date range. Takes a geodata
 4. Loads the shapefiles and masks the IDW for the selected country. 
 5. Plots the results on a map with the MATLAB plotting library module.
 6. Saves the output images in the temp directory 
+
 For future development:
 - [ ] Dynamically set the axis buffer, or the map extents
 - [ ] Select different colour gradient maps for the trend axes
