@@ -13,7 +13,7 @@ This web app makes use of a number of external libraries, common for data analys
 - os and shutil: for file and directory management
 - io: for generating CSV and ZIP files in memory
 - datetime
-- zipfile: for batch donwloading image files for static map generation
+- zipfile: for batch downloading image files for static map generation
 ### Common External Libraries
 - flask: used for building the web application
 - numpy and pandas: for data array mainpulation
