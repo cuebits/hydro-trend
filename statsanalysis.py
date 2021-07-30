@@ -7,7 +7,7 @@ import matplotlib
 matplotlib.use('Agg') # Avoids runtime errors
 
 from shapely.geometry import Point
-from numpy import mafromtxt, reshape, linspace
+from numpy import reshape, linspace
 
 # Function to generate monthly sens slope and mk trend test dataframes
 def mkanalysis(df: pandas.DataFrame, alpha=0.05, analysis_type = "Monthly"):
