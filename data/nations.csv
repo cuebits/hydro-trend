@@ -1,4 +1,4 @@
-Country,Alpha-2 code,Alpha-3 code,Numeric code,Latitude,Longitude
+ï»¿Country,Alpha-2 code,Alpha-3 code,Numeric code,Latitude,Longitude
 Afghanistan,AF,AFG,4,33,65
 Albania,AL,ALB,8,41,20
 Algeria,DZ,DZA,12,28,3
@@ -53,7 +53,7 @@ Congo,CG,COG,178,-1,15
 "Congo, the Democratic Republic of the",CD,COD,180,0,25
 Cook Islands,CK,COK,184,-21.2333,-159.7667
 Costa Rica,CR,CRI,188,10,-84
-Côte d'Ivoire,CI,CIV,384,8,-5
+CÃ´te d'Ivoire,CI,CIV,384,8,-5
 Ivory Coast,CI,CIV,384,8,-5
 Croatia,HR,HRV,191,45.1667,15.5
 Cuba,CU,CUB,192,21.5,-80
@@ -183,7 +183,7 @@ Poland,PL,POL,616,52,20
 Portugal,PT,PRT,620,39.5,-8
 Puerto Rico,PR,PRI,630,18.25,-66.5
 Qatar,QA,QAT,634,25.5,51.25
-Réunion,RE,REU,638,-21.1,55.6
+RÃ©union,RE,REU,638,-21.1,55.6
 Romania,RO,ROU,642,46,25
 Russian Federation,RU,RUS,643,60,100
 Russia,RU,RUS,643,60,100
